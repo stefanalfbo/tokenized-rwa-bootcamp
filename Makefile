@@ -18,3 +18,6 @@ tests: ## Run the project’s tests.
 
 deploy-real-estate-token: ## Deploy the RealEstateToken contract.
 	forge script script/DeployRealEstateToken.s.sol:DeployScript --rpc-url ${RPC_URL} --private-key ${PRIVATE_KEY} --broadcast --verify --etherscan-api-key ${ETHERSCAN_API_KEY} -vvvv
+
+deploy-issuer: ## Deploy the Issuer contract.
+	forge script script/DeployIssuer.s.sol:DeployScript --rpc-url ${RPC_URL} --private-key ${PRIVATE_KEY} --broadcast --verify --etherscan-api-key ${ETHERSCAN_API_KEY} -vvvv
