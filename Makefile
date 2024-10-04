@@ -24,3 +24,6 @@ deploy-issuer: ## Deploy the Issuer contract.
 
 deploy-rwa-lending: ## Deploy the RWALending contract.
 	forge script script/DeployRWALending.s.sol:DeployScript --rpc-url ${RPC_URL} --private-key ${PRIVATE_KEY} --broadcast --verify --etherscan-api-key ${ETHERSCAN_API_KEY} -vvvv
+
+deploy-english-auction: ## Deploy the EnglishAuction contract.
+	forge script script/DeployEnglishAuction.s.sol:DeployScript --rpc-url ${RPC_URL} --private-key ${PRIVATE_KEY} --broadcast --verify --etherscan-api-key ${ETHERSCAN_API_KEY} -vvvv
