@@ -21,3 +21,6 @@ deploy-real-estate-token: ## Deploy the RealEstateToken contract.
 
 deploy-issuer: ## Deploy the Issuer contract.
 	forge script script/DeployIssuer.s.sol:DeployScript --rpc-url ${RPC_URL} --private-key ${PRIVATE_KEY} --broadcast --verify --etherscan-api-key ${ETHERSCAN_API_KEY} -vvvv
+
+deploy-rwa-lending: ## Deploy the RWALending contract.
+	forge script script/DeployRWALending.s.sol:DeployScript --rpc-url ${RPC_URL} --private-key ${PRIVATE_KEY} --broadcast --verify --etherscan-api-key ${ETHERSCAN_API_KEY} -vvvv
