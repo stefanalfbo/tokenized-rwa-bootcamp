@@ -16,6 +16,9 @@ clean: ## Remove the build artifacts and cache directories.
 tests: ## Run the project’s tests.
 	forge test
 
+format-code: ## Format the project’s source code.
+	forge fmt
+
 deploy-real-estate-token: ## Deploy the RealEstateToken contract.
 	forge script script/DeployRealEstateToken.s.sol:DeployScript --rpc-url ${RPC_URL} --private-key ${PRIVATE_KEY} --broadcast --verify --etherscan-api-key ${ETHERSCAN_API_KEY} -vvvv
 

@@ -7,6 +7,7 @@ pragma solidity ^0.8.24;
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 abstract contract FunctionsSource {
+    // forgefmt: disable-next-item
     string public getNftMetadata =
         "const { ethers } = await import('npm:ethers@6.10.0');"
         "const Hash = await import('npm:ipfs-only-hash@4.0.0');"
@@ -32,6 +33,7 @@ abstract contract FunctionsSource {
         "const ipfsCid = await Hash.of(metadataString);"
         "return Functions.encodeString(`ipfs://${ipfsCid}`);";
 
+    // forgefmt: disable-next-item
     string public getPrices =
         "const { ethers } = await import('npm:ethers@6.10.0');"
         "const abiCoder = ethers.AbiCoder.defaultAbiCoder();"

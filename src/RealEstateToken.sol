@@ -9,10 +9,7 @@ import {RealEstatePriceDetails} from "./RealEstatePriceDetails.sol";
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
-contract RealEstateToken is
-    CrossChainBurnAndMintERC1155,
-    RealEstatePriceDetails
-{
+contract RealEstateToken is CrossChainBurnAndMintERC1155, RealEstatePriceDetails {
     /**
      *
      *  ██████╗ ███████╗ █████╗ ██╗         ███████╗███████╗████████╗ █████╗ ████████╗███████╗    ████████╗ ██████╗ ██╗  ██╗███████╗███╗   ██╗
@@ -30,12 +27,7 @@ contract RealEstateToken is
         uint64 currentChainSelector,
         address functionsRouterAddress
     )
-        CrossChainBurnAndMintERC1155(
-            uri_,
-            ccipRouterAddress,
-            linkTokenAddress,
-            currentChainSelector
-        )
+        CrossChainBurnAndMintERC1155(uri_, ccipRouterAddress, linkTokenAddress, currentChainSelector)
         RealEstatePriceDetails(functionsRouterAddress)
     {}
 }

@@ -35,13 +35,10 @@ contract ERC1155Core is ERC1155Supply, OwnerIsCreator {
         emit SetIssuer(_issuer);
     }
 
-    function mint(
-        address _to,
-        uint256 _id,
-        uint256 _amount,
-        bytes memory _data,
-        string memory _tokenUri
-    ) public onlyIssuerOrItself {
+    function mint(address _to, uint256 _id, uint256 _amount, bytes memory _data, string memory _tokenUri)
+        public
+        onlyIssuerOrItself
+    {
         _mint(_to, _id, _amount, _data);
         _tokenURIs[_id] = _tokenUri;
     }
@@ -59,28 +56,16 @@ contract ERC1155Core is ERC1155Supply, OwnerIsCreator {
         }
     }
 
-    function burn(
-        address account,
-        uint256 id,
-        uint256 amount
-    ) public onlyIssuerOrItself {
-        if (
-            account != _msgSender() && !isApprovedForAll(account, _msgSender())
-        ) {
+    function burn(address account, uint256 id, uint256 amount) public onlyIssuerOrItself {
+        if (account != _msgSender() && !isApprovedForAll(account, _msgSender())) {
             revert ERC1155MissingApprovalForAll(_msgSender(), account);
         }
 
         _burn(account, id, amount);
     }
 
-    function burnBatch(
-        address account,
-        uint256[] memory ids,
-        uint256[] memory amounts
-    ) public onlyIssuerOrItself {
-        if (
-            account != _msgSender() && !isApprovedForAll(account, _msgSender())
-        ) {
+    function burnBatch(address account, uint256[] memory ids, uint256[] memory amounts) public onlyIssuerOrItself {
+        if (account != _msgSender() && !isApprovedForAll(account, _msgSender())) {
             revert ERC1155MissingApprovalForAll(_msgSender(), account);
         }
 

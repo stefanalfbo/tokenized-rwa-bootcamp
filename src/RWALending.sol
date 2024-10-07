@@ -35,14 +35,10 @@ contract RwaLending is IERC1155Receiver, OwnerIsCreator, ReentrancyGuard {
     uint256 internal immutable i_ltvInitialThreshold;
     uint256 internal immutable i_ltvLiquidationThreshold;
 
-    mapping(uint256 tokenId => mapping(address borrower => LoanDetails))
-        internal s_activeLoans;
+    mapping(uint256 tokenId => mapping(address borrower => LoanDetails)) internal s_activeLoans;
 
     event Borrow(
-        uint256 indexed tokenId,
-        uint256 amount,
-        uint256 indexed loanAmount,
-        uint256 indexed liquidationThreshold
+        uint256 indexed tokenId, uint256 amount, uint256 indexed loanAmount, uint256 indexed liquidationThreshold
     );
     event BorrowRepayed(uint256 indexed tokenId, uint256 indexed amount);
     event Liquidated(uint256 indexed tokenId);
@@ -82,31 +78,23 @@ contract RwaLending is IERC1155Receiver, OwnerIsCreator, ReentrancyGuard {
         uint256 minLoanAmount,
         uint256 maxLiquidationThreshold
     ) external nonReentrant {
-        if (s_activeLoans[tokenId][msg.sender].usdcAmountLoaned != 0)
+        if (s_activeLoans[tokenId][msg.sender].usdcAmountLoaned != 0) {
             revert AlreadyBorrowed(msg.sender, tokenId);
+        }
 
-        uint256 normalizedValuation = (getValuationInUsdc(tokenId) * amount) /
-            i_realEstateToken.totalSupply(tokenId);
+        uint256 normalizedValuation = (getValuationInUsdc(tokenId) * amount) / i_realEstateToken.totalSupply(tokenId);
 
         if (normalizedValuation == 0) revert InvalidValuation();
 
-        uint256 loanAmount = (normalizedValuation * i_ltvInitialThreshold) /
-            100;
+        uint256 loanAmount = (normalizedValuation * i_ltvInitialThreshold) / 100;
         if (loanAmount < minLoanAmount) revert SlippageToleranceExceeded();
 
-        uint256 liquidationThreshold = (normalizedValuation *
-            i_ltvLiquidationThreshold) / 100;
+        uint256 liquidationThreshold = (normalizedValuation * i_ltvLiquidationThreshold) / 100;
         if (liquidationThreshold > maxLiquidationThreshold) {
             revert SlippageToleranceExceeded();
         }
 
-        i_realEstateToken.safeTransferFrom(
-            msg.sender,
-            address(this),
-            tokenId,
-            amount,
-            data
-        );
+        i_realEstateToken.safeTransferFrom(msg.sender, address(this), tokenId, amount, data);
 
         s_activeLoans[tokenId][msg.sender] = LoanDetails({
             erc1155AmountSupplied: amount,
@@ -125,19 +113,9 @@ contract RwaLending is IERC1155Receiver, OwnerIsCreator, ReentrancyGuard {
 
         delete s_activeLoans[tokenId][msg.sender];
 
-        IERC20(i_usdc).safeTransferFrom(
-            msg.sender,
-            address(this),
-            loanDetails.usdcAmountLoaned
-        );
+        IERC20(i_usdc).safeTransferFrom(msg.sender, address(this), loanDetails.usdcAmountLoaned);
 
-        i_realEstateToken.safeTransferFrom(
-            address(this),
-            msg.sender,
-            tokenId,
-            loanDetails.erc1155AmountSupplied,
-            ""
-        );
+        i_realEstateToken.safeTransferFrom(address(this), msg.sender, tokenId, loanDetails.erc1155AmountSupplied, "");
 
         emit BorrowRepayed(tokenId, loanDetails.erc1155AmountSupplied);
     }
@@ -145,13 +123,11 @@ contract RwaLending is IERC1155Receiver, OwnerIsCreator, ReentrancyGuard {
     function liquidate(uint256 tokenId, address borrower) external {
         LoanDetails memory loanDetails = s_activeLoans[tokenId][borrower];
 
-        uint256 normalizedValuation = (getValuationInUsdc(tokenId) *
-            loanDetails.erc1155AmountSupplied) /
-            i_realEstateToken.totalSupply(tokenId);
+        uint256 normalizedValuation =
+            (getValuationInUsdc(tokenId) * loanDetails.erc1155AmountSupplied) / i_realEstateToken.totalSupply(tokenId);
         if (normalizedValuation == 0) revert InvalidValuation();
 
-        uint256 liquidationThreshold = (normalizedValuation *
-            i_ltvLiquidationThreshold) / 100;
+        uint256 liquidationThreshold = (normalizedValuation * i_ltvLiquidationThreshold) / 100;
         if (liquidationThreshold < loanDetails.usdcLiquidationThreshold) {
             delete s_activeLoans[tokenId][borrower];
         }
@@ -186,46 +162,36 @@ contract RwaLending is IERC1155Receiver, OwnerIsCreator, ReentrancyGuard {
     }
 
     function getValuationInUsdc(uint256 tokenId) public view returns (uint256) {
-        RealEstateToken.PriceDetails memory priceDetails = i_realEstateToken
-            .getPriceDetails(tokenId);
+        RealEstateToken.PriceDetails memory priceDetails = i_realEstateToken.getPriceDetails(tokenId);
 
-        uint256 valuation = (i_weightListPrice *
-            priceDetails.listPrice +
-            i_weightOriginalListPrice *
-            priceDetails.originalListPrice +
-            i_weightTaxAssessedValue *
-            priceDetails.taxAssessedValue) /
-            (i_weightListPrice +
-                i_weightOriginalListPrice +
-                i_weightTaxAssessedValue);
+        uint256 valuation = (
+            i_weightListPrice * priceDetails.listPrice + i_weightOriginalListPrice * priceDetails.originalListPrice
+                + i_weightTaxAssessedValue * priceDetails.taxAssessedValue
+        ) / (i_weightListPrice + i_weightOriginalListPrice + i_weightTaxAssessedValue);
 
         uint256 usdcPriceInUsd = getUsdcPriceInUsd();
 
         uint256 feedDecimals = s_usdcUsdAggregator.decimals();
         uint256 usdcDecimals = 6; // USDC uses 6 decimals
 
-        uint256 normalizedValuation = Math.mulDiv(
-            (valuation * usdcPriceInUsd),
-            10 ** usdcDecimals,
-            10 ** feedDecimals
-        ); // Adjust the valuation from USD (Chainlink 1e8) to USDC (1e6)
+        uint256 normalizedValuation = Math.mulDiv((valuation * usdcPriceInUsd), 10 ** usdcDecimals, 10 ** feedDecimals); // Adjust the valuation from USD (Chainlink 1e8) to USDC (1e6)
 
         return normalizedValuation;
     }
 
-    function setUsdcUsdPriceFeedDetails(
-        address usdcUsdAggregatorAddress,
-        uint32 usdcUsdFeedHeartbeat
-    ) external onlyOwner {
+    function setUsdcUsdPriceFeedDetails(address usdcUsdAggregatorAddress, uint32 usdcUsdFeedHeartbeat)
+        external
+        onlyOwner
+    {
         s_usdcUsdAggregator = AggregatorV3Interface(usdcUsdAggregatorAddress);
         s_usdcUsdFeedHeartbeat = usdcUsdFeedHeartbeat;
     }
 
     function onERC1155Received(
-        address /*operator*/,
-        address /*from*/,
-        uint256 /*id*/,
-        uint256 /*value*/,
+        address, /*operator*/
+        address, /*from*/
+        uint256, /*id*/
+        uint256, /*value*/
         bytes calldata /*data*/
     ) external view returns (bytes4) {
         if (msg.sender != address(i_realEstateToken)) {
@@ -236,10 +202,10 @@ contract RwaLending is IERC1155Receiver, OwnerIsCreator, ReentrancyGuard {
     }
 
     function onERC1155BatchReceived(
-        address /*operator*/,
-        address /*from*/,
-        uint256[] calldata /*ids*/,
-        uint256[] calldata /*values*/,
+        address, /*operator*/
+        address, /*from*/
+        uint256[] calldata, /*ids*/
+        uint256[] calldata, /*values*/
         bytes calldata /*data*/
     ) external view returns (bytes4) {
         if (msg.sender != address(i_realEstateToken)) {
@@ -249,11 +215,7 @@ contract RwaLending is IERC1155Receiver, OwnerIsCreator, ReentrancyGuard {
         return IERC1155Receiver.onERC1155BatchReceived.selector;
     }
 
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view virtual override(IERC165) returns (bool) {
-        return
-            interfaceId == type(IERC1155Receiver).interfaceId ||
-            interfaceId == type(IERC165).interfaceId;
+    function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165) returns (bool) {
+        return interfaceId == type(IERC1155Receiver).interfaceId || interfaceId == type(IERC165).interfaceId;
     }
 }
